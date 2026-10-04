@@ -39,6 +39,7 @@ fun UserDetailScreen(nav: NavController, repo: Repository, userId: String) {
     var user by remember { mutableStateOf<AdminUser?>(null) }
     var loading by remember { mutableStateOf(true) }
     var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     var currency by remember { mutableStateOf("usdt") }
     var amount by remember { mutableStateOf("") }
@@ -58,7 +59,14 @@ fun UserDetailScreen(nav: NavController, repo: Repository, userId: String) {
     fun reload() {
         scope.launch {
             loading = true
-            repo.getUser(userId).onSuccess { user = it.user }
+            error = null
+            val res = repo.getUser(userId)
+            if (res.isSuccess) {
+                user = res.getOrNull()?.user
+                if (user == null) error = "User not found: " + userId
+            } else {
+                error = res.exceptionOrNull()?.message ?: "Failed"
+            }
             loading = false
         }
     }
@@ -79,9 +87,21 @@ fun UserDetailScreen(nav: NavController, repo: Repository, userId: String) {
             )
         }
 
-        if (loading || user == null) {
+        if (loading) {
             Box(Modifier.fillMaxSize(), Alignment.Center) {
                 Text("Loading…", color = NexaMuted, fontSize = 13.sp)
+            }
+        } else if (user == null) {
+            Box(Modifier.fillMaxSize().padding(40.dp), Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Failed to load user", color = NexaRed, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+                    Spacer(Modifier.height(10.dp))
+                    Text(error ?: "Check connection", color = NexaMuted, fontSize = 12.5.sp)
+                    Spacer(Modifier.height(18.dp))
+                    Box(Modifier.clip(RoundedCornerShape(12.dp)).background(NexaGreen.copy(alpha = 0.15f)).clickable { reload() }.padding(horizontal = 20.dp, vertical = 10.dp)) {
+                        Text("Retry", color = NexaGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+                }
             }
         } else {
             val u = user!!
