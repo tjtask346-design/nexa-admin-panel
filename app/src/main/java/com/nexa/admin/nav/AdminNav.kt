@@ -78,8 +78,16 @@ fun AdminNav(prefs: Prefs, repo: Repository) {
                         if (res.isSuccess && res.getOrNull()?.success == true && res.getOrNull()?.user?.role == "admin") {
                             AdminRoutes.DASHBOARD
                         } else {
-                            repo.clearSession()
-                            AdminRoutes.LOGIN
+                            val err = res.exceptionOrNull()?.message ?: ""
+                            val isAuthFailure = err.contains("401") || err.contains("Invalid") ||
+                                err.contains("expired") || err.contains("suspended", true) ||
+                                err.contains("403") || err.contains("banned", true)
+                            if (isAuthFailure) {
+                                repo.clearSession()
+                                AdminRoutes.LOGIN
+                            } else {
+                                AdminRoutes.DASHBOARD
+                            }
                         }
                     } else {
                         AdminRoutes.LOGIN

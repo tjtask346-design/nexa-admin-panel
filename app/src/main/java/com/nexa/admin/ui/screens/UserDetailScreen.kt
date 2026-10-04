@@ -17,7 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -34,6 +36,7 @@ private val CURRENCIES = listOf("usdt", "ltc", "nexa")
 @Composable
 fun UserDetailScreen(nav: NavController, repo: Repository, userId: String) {
     val ctx = LocalContext.current
+    val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
 
     var user by remember { mutableStateOf<AdminUser?>(null) }
@@ -388,10 +391,23 @@ fun UserDetailScreen(nav: NavController, repo: Repository, userId: String) {
                         fontSize = 12.sp, color = NexaMuted
                     )
                     Spacer(Modifier.height(6.dp))
-                    Text(
-                        user?.accountNumber ?: "",
-                        color = NexaRed, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            user?.accountNumber ?: "",
+                            color = NexaRed, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold
+                        )
+                        Box(
+                            Modifier.clip(RoundedCornerShape(8.dp))
+                                .background(NexaGreen.copy(alpha = 0.15f))
+                                .clickable {
+                                    clipboard.setText(AnnotatedString(user?.accountNumber ?: ""))
+                                    Toast.makeText(ctx, "Copied", Toast.LENGTH_SHORT).show()
+                                }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("Copy", color = NexaGreen, fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                     Spacer(Modifier.height(12.dp))
                     AdminInput(
                         value = deleteConfirm,
@@ -406,6 +422,7 @@ fun UserDetailScreen(nav: NavController, repo: Repository, userId: String) {
                     enabled = deleteConfirm == user?.accountNumber,
                     onClick = {
                         scope.launch {
+                            android.util.Log.d("NEXA_DELETE", "Deleting id=${user?.id} acc=${user?.accountNumber}")
                             repo.deleteUser(user?.id ?: "").onSuccess {
                                 Toast.makeText(ctx, "User deleted permanently", Toast.LENGTH_LONG).show()
                                 showDeleteDialog = false
