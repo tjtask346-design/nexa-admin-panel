@@ -55,9 +55,7 @@ data class UserListResponse(
 
 data class UserDetailResponse(
     val success: Boolean = false,
-    val user: AdminUser? = null,
-    val kyc: KycItem? = null,
-    val transactions: List<TxItem> = emptyList()
+    val user: AdminUser? = null
 )
 
 data class KycItem(

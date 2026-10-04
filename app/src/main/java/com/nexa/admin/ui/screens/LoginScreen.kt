@@ -125,21 +125,19 @@ fun LoginScreen(nav: NavController, prefs: Prefs, repo: Repository) {
             keyboardType = KeyboardType.Number
         )
 
-        if (needsTotp || code.isNotEmpty()) {
-            Spacer(Modifier.height(18.dp))
-            Text(
-                "2FA CODE",
-                color = NexaMuted, fontSize = 11.sp,
-                fontWeight = FontWeight.ExtraBold, letterSpacing = 0.7.sp
-            )
-            Spacer(Modifier.height(8.dp))
-            AdminInput(
-                value = code,
-                onChange = { if (it.length <= 6) code = it.filter { c -> c.isDigit() } },
-                placeholder = "6-digit authenticator code",
-                keyboardType = KeyboardType.Number
-            )
-        }
+        Spacer(Modifier.height(18.dp))
+        Text(
+            if (needsTotp) "2FA CODE (required)" else "2FA CODE (optional)",
+            color = NexaMuted, fontSize = 11.sp,
+            fontWeight = FontWeight.ExtraBold, letterSpacing = 0.7.sp
+        )
+        Spacer(Modifier.height(8.dp))
+        AdminInput(
+            value = code,
+            onChange = { if (it.length <= 6) code = it.filter { c -> c.isDigit() } },
+            placeholder = "6-digit code (leave blank if 2FA off)",
+            keyboardType = KeyboardType.Number
+        )
 
         if (error != null) {
             Spacer(Modifier.height(16.dp))
