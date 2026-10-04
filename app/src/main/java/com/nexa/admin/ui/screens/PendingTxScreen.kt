@@ -220,7 +220,7 @@ private fun TxCard(tx: TxItem, onAction: (String) -> Unit) {
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(Modifier.weight(1f)) {
-                    DangerButton("Reject") { onAction("rejected") }
+                    DangerButton(text = "Reject", onClick = { onAction("rejected") })
                 }
                 Box(Modifier.weight(1f)) {
                     GradientButton("Approve", onClick = { onAction("approved") })
