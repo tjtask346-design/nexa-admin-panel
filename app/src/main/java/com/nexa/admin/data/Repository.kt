@@ -73,6 +73,13 @@ class Repository(private val prefs: Prefs) {
     suspend fun markAllRead(): Result<SimpleResponse> =
         withContext(Dispatchers.IO) { wrap { api.markAllRead(authHeader()) } }
 
+    // ═══ Version Control ═══
+    suspend fun getVersionConfig(app: String = "user"): Result<VersionConfigResponse> =
+        withContext(Dispatchers.IO) { wrap { api.getVersionConfig(authHeader(), app) } }
+
+    suspend fun updateVersionConfig(req: UpdateVersionRequest): Result<VersionConfigResponse> =
+        withContext(Dispatchers.IO) { wrap { api.updateVersionConfig(authHeader(), req) } }
+
     fun saveSession(token: String?, user: AdminUser?) {
         prefs.token = token
         prefs.email = user?.email
