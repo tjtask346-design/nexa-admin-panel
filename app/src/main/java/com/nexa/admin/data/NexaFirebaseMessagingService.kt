@@ -15,6 +15,7 @@ import com.nexa.admin.R
 import kotlin.random.Random
 
 class NexaFirebaseMessagingService : FirebaseMessagingService() {
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         try { Prefs(applicationContext).fcmToken = token } catch (_: Exception) { }
@@ -22,27 +23,52 @@ class NexaFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-        val title = message.notification?.title ?: message.data["title"] ?: "Nexa Admin"
-        val body  = message.notification?.body  ?: message.data["body"]  ?: ""
-        showNotification(title, body)
+
+        val title = message.notification?.title
+            ?: message.data["title"]
+            ?: "Nexa Admin"
+
+        val body = message.notification?.body
+            ?: message.data["body"]
+            ?: ""
+
+        val dataMap = message.data.toMap()
+        showNotification(title, body, dataMap)
     }
 
-    private fun showNotification(title: String, body: String) {
+    private fun showNotification(title: String, body: String, data: Map<String, String>) {
         val channelId = "nexa_admin_alerts"
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (manager.getNotificationChannel(channelId) == null) {
-                val channel = NotificationChannel(channelId, "Nexa Admin Alerts", NotificationManager.IMPORTANCE_HIGH)
-                    .apply { description = "KYC, deposits, withdrawals"; enableVibration(true); setShowBadge(true) }
+                val channel = NotificationChannel(
+                    channelId, "Nexa Admin Alerts", NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "KYC, deposits, withdrawals"
+                    enableVibration(true)
+                    setShowBadge(true)
+                }
                 manager.createNotificationChannel(channel)
             }
         }
 
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+            putExtra("from_fcm", true)
+            data.forEach { (k, v) -> putExtra("fcm_$k", v) }
         }
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val requestCode = System.currentTimeMillis().toInt()
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
 
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.nexa_logo)
@@ -56,6 +82,6 @@ class NexaFirebaseMessagingService : FirebaseMessagingService() {
             .setContentIntent(pendingIntent)
             .build()
 
-        manager.notify(Random.nextInt(1000, 9999), notification)
+        manager.notify(requestCode, notification)
     }
 }
