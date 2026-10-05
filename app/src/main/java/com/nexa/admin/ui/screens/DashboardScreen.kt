@@ -154,6 +154,14 @@ fun DashboardScreen(nav: NavController, prefs: Prefs, repo: Repository) {
                 accent = NexaGreen
             ) { nav.navigate(AdminRoutes.NOTIFICATIONS) }
 
+            Spacer(Modifier.height(10.dp))
+
+            QuickTile(
+                title = "Version Control",
+                subtitle = "App update + force update manage",
+                accent = NexaAmber
+            ) { nav.navigate(AdminRoutes.VERSION_CONTROL) }
+
             Spacer(Modifier.height(30.dp))
         }
     }
