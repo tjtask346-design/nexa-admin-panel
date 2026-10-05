@@ -12,22 +12,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.nexa.admin.data.NavIntent
 import com.nexa.admin.data.Prefs
 import com.nexa.admin.data.Repository
 import com.nexa.admin.ui.screens.*
 import com.nexa.admin.ui.theme.*
 
 object AdminRoutes {
-    const val SPLASH        = "splash"
-    const val LOGIN         = "login"
-    const val DASHBOARD     = "dashboard"
-    const val USERS         = "users"
-    const val USER_DETAIL   = "user_detail"
-    const val PENDING_KYC   = "pending_kyc"
-    const val PENDING_TX    = "pending_tx"
-    const val NOTIFICATIONS = "notifications"
+    const val SPLASH          = "splash"
+    const val LOGIN           = "login"
+    const val DASHBOARD       = "dashboard"
+    const val USERS           = "users"
+    const val USER_DETAIL     = "user_detail"
+    const val PENDING_KYC     = "pending_kyc"
+    const val PENDING_TX      = "pending_tx"
+    const val NOTIFICATIONS   = "notifications"
+    const val VERSION_CONTROL = "version_control"
 
     fun userDetail(id: String) = "$USER_DETAIL/$id"
 }
@@ -35,6 +38,27 @@ object AdminRoutes {
 @Composable
 fun AdminNav(prefs: Prefs, repo: Repository) {
     val nav = rememberNavController()
+    val backStackEntry by nav.currentBackStackEntryAsState()
+    val currentPath = backStackEntry?.destination?.route?.substringBefore("?") ?: ""
+
+    // ═══ FCM click → navigate ═══
+    LaunchedEffect(currentPath, prefs.token) {
+        val target = NavIntent.targetScreen
+        if (target != null && !prefs.token.isNullOrBlank() && currentPath != AdminRoutes.SPLASH) {
+            val route = when (target) {
+                "admin_kyc"  -> AdminRoutes.PENDING_KYC
+                "admin_tx"   -> AdminRoutes.PENDING_TX
+                "users"      -> AdminRoutes.USERS
+                "dashboard"  -> AdminRoutes.DASHBOARD
+                "notifications" -> AdminRoutes.NOTIFICATIONS
+                else         -> AdminRoutes.DASHBOARD
+            }
+            if (currentPath != route) {
+                nav.navigate(route) { launchSingleTop = true }
+            }
+            NavIntent.clear()
+        }
+    }
 
     Box(Modifier.fillMaxSize().background(NexaBg)) {
         Canvas(Modifier.fillMaxSize()) {
@@ -106,12 +130,13 @@ fun AdminNav(prefs: Prefs, repo: Repository) {
                 }
             }
 
-            composable(AdminRoutes.LOGIN)         { LoginScreen(nav, prefs, repo) }
-            composable(AdminRoutes.DASHBOARD)     { DashboardScreen(nav, prefs, repo) }
-            composable(AdminRoutes.USERS)         { UsersScreen(nav, repo) }
-            composable(AdminRoutes.PENDING_KYC)   { PendingKycScreen(nav, repo) }
-            composable(AdminRoutes.PENDING_TX)    { PendingTxScreen(nav, repo) }
-            composable(AdminRoutes.NOTIFICATIONS) { AdminNotificationsScreen(nav, repo) }
+            composable(AdminRoutes.LOGIN)           { LoginScreen(nav, prefs, repo) }
+            composable(AdminRoutes.DASHBOARD)       { DashboardScreen(nav, prefs, repo) }
+            composable(AdminRoutes.USERS)           { UsersScreen(nav, repo) }
+            composable(AdminRoutes.PENDING_KYC)     { PendingKycScreen(nav, repo) }
+            composable(AdminRoutes.PENDING_TX)      { PendingTxScreen(nav, repo) }
+            composable(AdminRoutes.NOTIFICATIONS)   { AdminNotificationsScreen(nav, repo) }
+            composable(AdminRoutes.VERSION_CONTROL) { VersionControlScreen(nav, repo) }
 
             composable(
                 route = "${AdminRoutes.USER_DETAIL}/{userId}",
