@@ -55,7 +55,9 @@ data class UserListResponse(
 
 data class UserDetailResponse(
     val success: Boolean = false,
-    val user: AdminUser? = null
+    val user: AdminUser? = null,
+    val kyc: KycItem? = null,
+    val transactions: List<TxItem> = emptyList()
 )
 
 data class KycItem(
@@ -83,6 +85,7 @@ data class TxItem(
     val user: AdminUser? = null,
     val type: String = "",
     val amount: Double = 0.0,
+    val currency: String = "usdt",
     val status: String = "pending",
     val trxId: String? = null,
     val paymentMethodNumber: String? = null,
@@ -139,6 +142,34 @@ data class NotificationsResponse(
     val unread: Int = 0
 )
 
+// ═══ Version Control ═══
+data class VersionConfig(
+    val app: String = "user",
+    val latestVersion: Int = 1,
+    val latestVersionName: String = "1.0.0",
+    val minVersion: Int = 1,
+    val forceUpdate: Boolean = false,
+    val updateUrl: String = "",
+    val releaseNotes: String = ""
+)
+
+data class VersionConfigResponse(
+    val success: Boolean = false,
+    val config: VersionConfig? = null,
+    val message: String? = null
+)
+
+data class UpdateVersionRequest(
+    val app: String,
+    val latestVersion: Int,
+    val latestVersionName: String,
+    val minVersion: Int,
+    val forceUpdate: Boolean,
+    val updateUrl: String,
+    val releaseNotes: String
+)
+
+// ═══ Request bodies ═══
 data class LoginPinRequest(val email: String, val pin: String, val code: String? = null)
 data class AdjustBalanceRequest(val userId: String, val currency: String, val amount: Double, val note: String)
 data class BanRequest(val userId: String, val ban: Boolean, val reason: String? = null)
@@ -149,6 +180,7 @@ data class RejectKycRequest(val kycId: String, val adminNote: String)
 data class FcmTokenRequest(val token: String, val app: String = "admin")
 
 interface NexaAdminApi {
+
     @POST("/api/auth/login-pin")
     suspend fun loginPin(@Body body: LoginPinRequest): AuthResponse
 
@@ -208,6 +240,19 @@ interface NexaAdminApi {
 
     @PUT("/api/notifications/read-all")
     suspend fun markAllRead(@Header("Authorization") token: String): SimpleResponse
+
+    // ═══ Version Control ═══
+    @GET("/api/admin/version")
+    suspend fun getVersionConfig(
+        @Header("Authorization") token: String,
+        @Query("app") app: String = "user"
+    ): VersionConfigResponse
+
+    @POST("/api/admin/version")
+    suspend fun updateVersionConfig(
+        @Header("Authorization") token: String,
+        @Body body: UpdateVersionRequest
+    ): VersionConfigResponse
 }
 
 object ApiClient {
