@@ -10,7 +10,9 @@ class Prefs(context: Context) {
         .build()
 
     private val sp = EncryptedSharedPreferences.create(
-        context, "nexa_admin_secure", masterKey,
+        context,
+        "nexa_admin_secure",
+        masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
@@ -35,6 +37,7 @@ class Prefs(context: Context) {
         get() = sp.getString("fcmToken", null)
         set(v) = sp.edit().putString("fcmToken", v).apply()
 
+    // Bumped key so old installs re-sync token as admin
     var fcmTokenSynced: Boolean
         get() = sp.getBoolean("fcmTokenSyncedV2", false)
         set(v) = sp.edit().putBoolean("fcmTokenSyncedV2", v).apply()
