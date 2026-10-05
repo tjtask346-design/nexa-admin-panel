@@ -26,7 +26,7 @@ class Repository(private val prefs: Prefs) {
         withContext(Dispatchers.IO) { wrap { api.me(authHeader()) } }
 
     suspend fun saveFcmToken(token: String): Result<SimpleResponse> =
-        withContext(Dispatchers.IO) { wrap { api.saveFcmToken(authHeader(), FcmTokenRequest(token)) } }
+        withContext(Dispatchers.IO) { wrap { api.saveFcmToken(authHeader(), FcmTokenRequest(token, "admin")) } }
 
     suspend fun stats(): Result<AdminStats> =
         withContext(Dispatchers.IO) { wrap { api.adminStats(authHeader()) } }

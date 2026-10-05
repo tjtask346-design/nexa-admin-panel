@@ -146,7 +146,7 @@ data class SendNotifyRequest(val userId: String, val title: String, val body: St
 data class ApproveActionRequest(val transactionId: String, val action: String, val adminNote: String? = null)
 data class ApproveKycRequest(val kycId: String)
 data class RejectKycRequest(val kycId: String, val adminNote: String)
-data class FcmTokenRequest(val token: String)
+data class FcmTokenRequest(val token: String, val app: String = "admin")
 
 interface NexaAdminApi {
     @POST("/api/auth/login-pin")

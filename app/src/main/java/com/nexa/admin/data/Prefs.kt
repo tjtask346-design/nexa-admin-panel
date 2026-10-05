@@ -36,8 +36,8 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putString("fcmToken", v).apply()
 
     var fcmTokenSynced: Boolean
-        get() = sp.getBoolean("fcmTokenSynced", false)
-        set(v) = sp.edit().putBoolean("fcmTokenSynced", v).apply()
+        get() = sp.getBoolean("fcmTokenSyncedV2", false)
+        set(v) = sp.edit().putBoolean("fcmTokenSyncedV2", v).apply()
 
     fun logout() {
         val savedFcm = fcmToken
