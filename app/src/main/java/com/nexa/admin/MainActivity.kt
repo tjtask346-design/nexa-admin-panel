@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
+import com.nexa.admin.data.NavIntent
 import com.nexa.admin.data.Prefs
 import com.nexa.admin.data.Repository
 import com.nexa.admin.nav.AdminNav
@@ -51,6 +53,7 @@ class MainActivity : ComponentActivity() {
 
         createNotificationChannel()
         askNotificationPermission()
+        handleFcmIntent(intent)
 
         setContent {
             NexaTheme {
@@ -60,6 +63,27 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleFcmIntent(intent)
+    }
+
+    private fun handleFcmIntent(intent: Intent?) {
+        if (intent == null) return
+        if (!intent.getBooleanExtra("from_fcm", false)) return
+
+        val screen = intent.getStringExtra("fcm_screen")
+        val txId = intent.getStringExtra("fcm_txId")
+        val type = intent.getStringExtra("fcm_type")
+
+        NavIntent.targetScreen = screen ?: "dashboard"
+        NavIntent.txId = txId
+        NavIntent.type = type
+
+        Log.d("NEXA_ADMIN_FCM", "NavIntent set → screen=$screen txId=$txId type=$type")
     }
 
     private fun createNotificationChannel() {
